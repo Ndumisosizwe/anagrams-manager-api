@@ -10,7 +10,8 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "words", indexes = {
         @Index(name = "idx_word_value", columnList = "word", unique = true),
-        @Index(name = "idx_word_length", columnList = "word_length")
+        @Index(name = "idx_word_length", columnList = "word_length"),
+        @Index(name = "idx_word_length_sorted_chars", columnList = "word_length, sorted_chars")
 })
 @Getter
 @Setter

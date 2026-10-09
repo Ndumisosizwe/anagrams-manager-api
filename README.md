@@ -129,3 +129,20 @@ mvn test -pl backend
 - **H2 in-memory** database is used for portability. To swap to PostgreSQL, update the `datasource` block in `application.properties` and add the PostgreSQL driver dependency.
 - Dictionary is seeded **once on first startup**. Subsequent restarts skip seeding if the table is already populated.
 - Anagram counts are **cached** (Caffeine) and automatically evicted on any word add or delete, so results always reflect live data.
+
+---
+
+## Algorithm
+
+The anagram key (`sorted_chars`) is computed once at insert time — e.g. `LISTEN` → `EILNST`. No character sorting happens at query time.
+
+The count query is a single aggregation pushed entirely to the database:
+
+```sql
+SELECT word_length, COUNT(DISTINCT sorted_chars)
+FROM words
+GROUP BY word_length
+ORDER BY word_length
+```
+
+A composite index on `(word_length, sorted_chars)` makes this a covering index scan — the engine never touches the table rows. The Java layer receives ~30 rows (one per distinct word length) regardless of dictionary size. With caching, repeated calls cost nothing.
