@@ -13,16 +13,8 @@
 
     <artifactId>bsg-anagrams-frontend</artifactId>
     <packaging>jar</packaging>
-    <name>BSG Anagrams - Frontend (Angular - placeholder)</name>
+    <name>BSG Anagrams - Frontend (Angular)</name>
 
-    <!--
-        Angular source lives in src/main/angular.
-        Uncomment the frontend-maven-plugin block below once Angular is scaffolded.
-        At build time it will: install Node locally, run ng build, copy dist into
-        META-INF/resources so Spring Boot serves it at /.
-    -->
-
-    <!--
     <build>
         <plugins>
             <plugin>
@@ -30,30 +22,40 @@
                 <artifactId>frontend-maven-plugin</artifactId>
                 <version>1.15.0</version>
                 <configuration>
-                    <nodeVersion>v20.11.0</nodeVersion>
-                    <npmVersion>10.2.4</npmVersion>
-                    <workingDirectory>src/main/angular</workingDirectory>
+                    <!-- Downloads and caches Node/npm locally under target/ — no global install needed -->
+                    <nodeVersion>v20.19.0</nodeVersion>
+                    <workingDirectory>src/main/anagrams-ui</workingDirectory>
                     <installDirectory>target</installDirectory>
+                    <environmentVariables>
+                        <NG_CLI_ANALYTICS>false</NG_CLI_ANALYTICS>
+                    </environmentVariables>
                 </configuration>
                 <executions>
                     <execution>
                         <id>install-node-npm</id>
                         <goals><goal>install-node-and-npm</goal></goals>
+                        <phase>generate-resources</phase>
                     </execution>
                     <execution>
                         <id>npm-install</id>
                         <goals><goal>npm</goal></goals>
-                        <configuration><arguments>install</arguments></configuration>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <arguments>install --fund false --audit false</arguments>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>ng-build</id>
                         <goals><goal>npm</goal></goals>
+                        <phase>generate-resources</phase>
                         <configuration>
-                            <arguments>run build - -configuration production</arguments>
+                            <arguments>run build:prod</arguments>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- Copy the Angular dist output into the JAR so Spring Boot serves it from / -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -66,7 +68,8 @@
                             <outputDirectory>${project.build.outputDirectory}/META-INF/resources</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>src/main/angular/dist/frontend/browser</directory>
+                                    <directory>src/main/anagrams-ui/dist/anagrams-ui/browser</directory>
+                                    <filtering>false</filtering>
                                 </resource>
                             </resources>
                         </configuration>
@@ -75,6 +78,4 @@
             </plugin>
         </plugins>
     </build>
-    -->
-
 </project>

@@ -22,5 +22,8 @@ node_modules/
 dist/
 .angular/
 npm-debug.log*
+frontend/src/main/anagrams-ui/node_modules/
+frontend/src/main/anagrams-ui/dist/
+frontend/src/main/anagrams-ui/.angular/
 
 *.env
