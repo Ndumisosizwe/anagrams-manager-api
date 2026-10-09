@@ -34,8 +34,8 @@ BSG-anagrams-code assignment/
 │       └── test/java/com/bsg/anagrams/
 │           ├── controller/          WordControllerTest, AnagramControllerTest
 │           └── service/             AnagramServiceTest
-└── frontend/                        ← Angular 19 SPA
-    ├── pom.xml                      ← frontend-maven-plugin wires ng build into mvn package
+└── frontend/                        ← Angular 19 SPA (Maven module)
+    ├── pom.xml                      ← frontend-maven-plugin runs ng build; assets unpacked into backend JAR
     └── src/main/anagrams-ui/
         └── src/app/
             ├── api.service.ts       ← all HTTP calls
@@ -48,15 +48,18 @@ BSG-anagrams-code assignment/
 ## Build
 
 ```bash
-# Backend only
+# Backend only (skips Angular build — useful during backend development)
 mvn clean package -pl backend
 
-# Full build — backend + Angular (downloads Node locally on first run)
+# Full build — Angular + backend, single runnable JAR
 mvn clean package
 ```
 
-The full build produces:
-- `backend/target/bsg-anagrams-backend-1.0.0-SNAPSHOT.jar` — runnable fat JAR containing the API
+The full build:
+1. Downloads Node locally via `frontend-maven-plugin` (first run only)
+2. Runs `ng build --configuration production`
+3. Unpacks the Angular `dist/` assets into the backend classpath under `META-INF/resources/`
+4. Produces a single fat JAR: `backend/target/bsg-anagrams-backend-1.0.0-SNAPSHOT.jar`
 
 ---
 
@@ -66,32 +69,32 @@ The full build produces:
 java -jar backend/target/bsg-anagrams-backend-1.0.0-SNAPSHOT.jar
 ```
 
-On startup the application seeds the database from `Dictionary.txt` (one-time, skipped on subsequent restarts).
+On startup the app seeds the database from `Dictionary.txt` (one-time only — skipped on subsequent restarts).
+
+---
+
+## What you get at localhost:8080
+
+| URL | Description |
+|---|---|
+| `http://localhost:8080/` | Angular UI |
+| `http://localhost:8080/swagger-ui.html` | Swagger / OpenAPI docs |
+| `http://localhost:8080/api-docs` | OpenAPI JSON |
+| `http://localhost:8080/h2-console` | H2 database console |
+
+H2 console JDBC URL: `jdbc:h2:mem:anagramsdb`
 
 ---
 
 ## Frontend — dev mode
 
-Start the backend first, then in a separate terminal:
+For live-reload Angular development, run the backend first then:
 
 ```bash
 cd frontend/src/main/anagrams-ui
 npm install        # first time only
-npm start          # http://localhost:4200 — proxies /api to localhost:8080
+npm start          # http://localhost:4200 — proxies /api/* to localhost:8080
 ```
-
----
-
-## URLs
-
-| Resource | URL |
-|---|---|
-| Angular UI (dev) | http://localhost:4200 |
-| Swagger UI | http://localhost:8080/swagger-ui.html |
-| OpenAPI JSON | http://localhost:8080/api-docs |
-| H2 Console | http://localhost:8080/h2-console |
-
-H2 console JDBC URL: `jdbc:h2:mem:anagramsdb`
 
 ---
 
@@ -105,24 +108,24 @@ H2 console JDBC URL: `jdbc:h2:mem:anagramsdb`
 | `GET` | `/api/words/{word}/anagrams` | Anagrams of a given word |
 | `GET` | `/api/anagrams/counts` | Anagram group counts per word length + computation time (ms) |
 
-Full interactive docs available at `/swagger-ui.html`.
+Full interactive docs at `http://localhost:8080/swagger-ui.html`.
 
 ---
 
 ## Tests
 
 ```bash
-mvn test
+mvn test -pl backend
 ```
 
-15 tests — unit (service + algorithm) and slice tests (MockMvc controllers).
+15 tests — unit (anagram algorithm, domain logic) and MockMvc slice tests (all controllers).
 
 ---
 
 ## Assumptions
 
-- **Anagram count** = number of *groups* where 2+ words share the same sorted-character signature (e.g. LISTEN / SILENT / ENLIST = 1 group). Not the total number of anagram words.
-- Words are stored and compared **case-insensitively** — all normalised to uppercase internally.
-- **H2 in-memory** database is used for portability. To switch to PostgreSQL, update the `datasource` block in `application.properties` and add the PostgreSQL driver dependency.
+- **Anagram count** = number of *groups* where 2+ words share the same sorted-character signature (e.g. LISTEN / SILENT / ENLIST = 1 group of 3), not the total number of anagram words.
+- Words are stored and compared **case-insensitively** — normalised to uppercase internally.
+- **H2 in-memory** database is used for portability. To swap to PostgreSQL, update the `datasource` block in `application.properties` and add the PostgreSQL driver dependency.
 - Dictionary is seeded **once on first startup**. Subsequent restarts skip seeding if the table is already populated.
-- The anagram counts result is **cached** (Caffeine) and automatically evicted whenever a word is added or deleted, keeping results consistent with live data.
+- Anagram counts are **cached** (Caffeine) and automatically evicted on any word add or delete, so results always reflect live data.

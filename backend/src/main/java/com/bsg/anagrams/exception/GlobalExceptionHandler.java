@@ -6,6 +6,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -20,8 +21,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DuplicateWordException.class)
     public ProblemDetail handleDuplicate(DuplicateWordException ex) {
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-        return pd;
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -37,8 +37,12 @@ public class GlobalExceptionHandler {
         return pd;
     }
 
-    @ExceptionHandler(Exception.class)
+    // Let Spring handle unmapped paths with its default 404 — don't intercept NoResourceFoundException
+    @ExceptionHandler({Exception.class})
     public ProblemDetail handleGeneric(Exception ex) {
+        if (ex instanceof NoResourceFoundException) {
+            return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        }
         return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
     }
 }
