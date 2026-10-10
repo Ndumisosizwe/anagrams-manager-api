@@ -57,4 +57,8 @@ public class WordService {
                 .map(WordResponse::from)
                 .toList();
     }
+
+    public List<String> getExampleWordsWithAnagrams(int count) {
+        return wordRepository.findRandomWordsWithAnagrams(count);
+    }
 }

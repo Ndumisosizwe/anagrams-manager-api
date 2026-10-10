@@ -50,6 +50,10 @@ export class ApiService {
     return this.http.get<WordResponse[]>(`${this.base}/words/${encodeURIComponent(word)}/anagrams`);
   }
 
+  getExampleWords(count = 6): Observable<string[]> {
+    return this.http.get<string[]>(`${this.base}/words/examples?count=${count}`);
+  }
+
   getAnagramCounts(): Observable<AnagramCountResponse> {
     return this.http.get<AnagramCountResponse>(`${this.base}/anagrams/counts`);
   }

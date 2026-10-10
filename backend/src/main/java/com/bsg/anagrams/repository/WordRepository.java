@@ -25,6 +25,19 @@ public interface WordRepository extends JpaRepository<Word, Long> {
     @Query("SELECT w.wordLength, COUNT(DISTINCT w.sortedChars) FROM Word w GROUP BY w.wordLength ORDER BY w.wordLength")
     List<Object[]> countAnagramGroupsByWordLength();
 
+    @Query("SELECT w.sortedChars, w.word FROM Word w WHERE w.wordLength = :wordLength ORDER BY w.sortedChars, w.word")
+    List<Object[]> findWordsGroupedByLength(@Param("wordLength") int wordLength);
+
+    @Query(value = """
+            SELECT w.word FROM words w
+            WHERE w.sorted_chars IN (
+                SELECT sorted_chars FROM words GROUP BY sorted_chars HAVING COUNT(*) > 1
+            )
+            ORDER BY RAND()
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<String> findRandomWordsWithAnagrams(@Param("limit") int limit);
+
     @Query("SELECT w FROM Word w WHERE w.sortedChars = :sortedChars AND UPPER(w.word) != UPPER(:word)")
     List<Word> findAnagramsOf(@Param("sortedChars") String sortedChars, @Param("word") String word);
 }

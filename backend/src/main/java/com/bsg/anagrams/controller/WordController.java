@@ -66,4 +66,12 @@ public class WordController {
             @Parameter(description = "The word to find anagrams for", example = "SPARE") @PathVariable String word) {
         return ResponseEntity.ok(wordService.getAnagrams(word));
     }
+
+    @GetMapping("/examples")
+    @Operation(summary = "Get example words that have anagrams", description = "Returns a small random set of words from the dictionary that are known to have at least one anagram. Useful for seeding the lookup UI.")
+    @ApiResponse(responseCode = "200", description = "Success")
+    public ResponseEntity<List<String>> getExampleWords(
+            @Parameter(description = "Number of examples to return") @RequestParam(defaultValue = "6") int count) {
+        return ResponseEntity.ok(wordService.getExampleWordsWithAnagrams(count));
+    }
 }
