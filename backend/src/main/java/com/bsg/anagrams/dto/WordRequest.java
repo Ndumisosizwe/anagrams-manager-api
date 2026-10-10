@@ -11,6 +11,6 @@ public record WordRequest(
         @NotBlank(message = "Word must not be blank")
         @Size(min = 1, max = 100, message = "Word length must be between 1 and 100 characters")
         @Pattern(regexp = "^[a-zA-Z]+$", message = "Word must contain only alphabetic characters")
-        @Schema(description = "The word to add", example = "LISTEN")
+        @Schema(description = "The word to add", example = "SPARE")
         String word
 ) {}

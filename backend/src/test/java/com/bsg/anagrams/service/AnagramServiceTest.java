@@ -41,7 +41,7 @@ class AnagramServiceTest {
     }
 
     @Test
-    void computeAnagramCounts_emptydictionary_returnsEmptyResults() {
+    void computeAnagramCounts_emptyDictionary_returnsEmptyResults() {
         when(wordRepository.countAnagramGroupsByWordLength()).thenReturn(List.of());
 
         AnagramCountResponse response = anagramService.computeAnagramCounts();
@@ -51,25 +51,25 @@ class AnagramServiceTest {
 
     @Test
     void anagramCountEntry_summaryFormat_isCorrect() {
-        var entry = AnagramCountResponse.AnagramCountEntry.of(6, 3L);
-        assertThat(entry.summary()).isEqualTo("Words with the character length of 6 had 3 anagrams");
+        var entry = AnagramCountResponse.AnagramCountEntry.of(5, 3L);
+        assertThat(entry.summary()).isEqualTo("Words with the character length of 5 had 3 anagrams");
     }
 
     @Test
     void word_sortedChars_matchesAnagramPairs() {
-        Word listen = new Word("LISTEN");
-        Word silent = new Word("SILENT");
-        Word enlist = new Word("ENLIST");
+        Word spare = new Word("SPARE");
+        Word reaps = new Word("REAPS");
+        Word pares = new Word("PARES");
 
-        assertThat(listen.getSortedChars()).isEqualTo(silent.getSortedChars());
-        assertThat(listen.getSortedChars()).isEqualTo(enlist.getSortedChars());
-        assertThat(listen.getSortedChars()).isEqualTo("EILNST");
+        assertThat(spare.getSortedChars()).isEqualTo(reaps.getSortedChars());
+        assertThat(spare.getSortedChars()).isEqualTo(pares.getSortedChars());
+        assertThat(spare.getSortedChars()).isEqualTo("AEPRS");
     }
 
     @Test
     void word_nonAnagrams_haveDifferentSortedChars() {
-        Word hello = new Word("HELLO");
+        Word spare = new Word("SPARE");
         Word world = new Word("WORLD");
-        assertThat(hello.getSortedChars()).isNotEqualTo(world.getSortedChars());
+        assertThat(spare.getSortedChars()).isNotEqualTo(world.getSortedChars());
     }
 }

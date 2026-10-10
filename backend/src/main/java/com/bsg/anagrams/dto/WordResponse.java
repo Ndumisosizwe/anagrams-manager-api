@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 public record WordResponse(
 
         @Schema(description = "Internal ID") Long id,
-        @Schema(description = "The word value", example = "LISTEN") String word,
+        @Schema(description = "The word value", example = "SPARE") String word,
         @Schema(description = "Character length of the word", example = "6") int wordLength,
         @Schema(description = "Timestamp when this word was added") LocalDateTime createdAt
 ) {

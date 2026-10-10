@@ -46,24 +46,24 @@ class WordControllerTest {
     void getAllWords_returns200() throws Exception {
         when(wordService.getAllWords(any(Pageable.class))).thenAnswer(inv -> {
             Pageable p = inv.getArgument(0);
-            return new PageImpl<>(List.of(sampleWord("LISTEN")), p, 1);
+            return new PageImpl<>(List.of(sampleWord("SPARE")), p, 1);
         });
 
         mockMvc.perform(get("/api/words"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].word").value("LISTEN"))
+                .andExpect(jsonPath("$.content[0].word").value("SPARE"))
                 .andExpect(jsonPath("$.totalElements").value(1));
     }
 
     @Test
     void addWord_validRequest_returns201() throws Exception {
-        when(wordService.addWord(any())).thenReturn(sampleWord("LISTEN"));
+        when(wordService.addWord(any())).thenReturn(sampleWord("SPARE"));
 
         mockMvc.perform(post("/api/words")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new WordRequest("LISTEN"))))
+                        .content(objectMapper.writeValueAsString(new WordRequest("SPARE"))))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.word").value("LISTEN"));
+                .andExpect(jsonPath("$.word").value("SPARE"));
     }
 
     @Test
@@ -84,19 +84,19 @@ class WordControllerTest {
 
     @Test
     void addWord_duplicate_returns409() throws Exception {
-        when(wordService.addWord(any())).thenThrow(new DuplicateWordException("LISTEN"));
+        when(wordService.addWord(any())).thenThrow(new DuplicateWordException("SPARE"));
 
         mockMvc.perform(post("/api/words")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new WordRequest("LISTEN"))))
+                        .content(objectMapper.writeValueAsString(new WordRequest("SPARE"))))
                 .andExpect(status().isConflict());
     }
 
     @Test
     void deleteWord_exists_returns204() throws Exception {
-        doNothing().when(wordService).deleteWord(eq("LISTEN"));
+        doNothing().when(wordService).deleteWord(eq("SPARE"));
 
-        mockMvc.perform(delete("/api/words/LISTEN"))
+        mockMvc.perform(delete("/api/words/SPARE"))
                 .andExpect(status().isNoContent());
     }
 
@@ -110,10 +110,10 @@ class WordControllerTest {
 
     @Test
     void getAnagrams_returns200() throws Exception {
-        when(wordService.getAnagrams(eq("LISTEN")))
-                .thenReturn(List.of(sampleWord("SILENT"), sampleWord("ENLIST")));
+        when(wordService.getAnagrams(eq("SPARE")))
+                .thenReturn(List.of(sampleWord("REAPS"), sampleWord("PARES")));
 
-        mockMvc.perform(get("/api/words/LISTEN/anagrams"))
+        mockMvc.perform(get("/api/words/SPARE/anagrams"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
     }

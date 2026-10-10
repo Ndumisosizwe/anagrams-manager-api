@@ -53,7 +53,7 @@ public class WordController {
     @ApiResponse(responseCode = "204", description = "Word deleted")
     @ApiResponse(responseCode = "404", description = "Word not found")
     public ResponseEntity<Void> deleteWord(
-            @Parameter(description = "The word to delete", example = "LISTEN") @PathVariable String word) {
+            @Parameter(description = "The word to delete", example = "SPARE") @PathVariable String word) {
         wordService.deleteWord(word);
         return ResponseEntity.noContent().build();
     }
@@ -63,7 +63,7 @@ public class WordController {
     @ApiResponse(responseCode = "200", description = "Success")
     @ApiResponse(responseCode = "404", description = "Word not found in dictionary")
     public ResponseEntity<List<WordResponse>> getAnagrams(
-            @Parameter(description = "The word to find anagrams for", example = "LISTEN") @PathVariable String word) {
+            @Parameter(description = "The word to find anagrams for", example = "SPARE") @PathVariable String word) {
         return ResponseEntity.ok(wordService.getAnagrams(word));
     }
 }

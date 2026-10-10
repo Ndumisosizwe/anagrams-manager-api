@@ -1,0 +1,20 @@
+{
+  "AWSEBDockerrunVersion": "1",
+  "Image": {
+    "Name": "<YOUR_DOCKERHUB_USERNAME>/bsg-anagrams:latest",
+    "Update": "true"
+  },
+  "Ports": [
+    {
+      "ContainerPort": "8080",
+      "HostPort": "80"
+    }
+  ],
+  "Logging": "/var/log/app",
+  "Environment": [
+    {
+      "Name": "JAVA_OPTS",
+      "Value": "-Xms128m -Xmx512m -XX:+UseSerialGC -XX:MaxMetaspaceSize=128m"
+    }
+  ]
+}

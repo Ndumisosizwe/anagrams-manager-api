@@ -1,114 +1,67 @@
-# BSG Anagrams — Code Assignment
+# BSG Anagrams
 
-A full-stack anagram analysis application built with **Java 24 + Spring Boot** (backend) and **Angular 19** (frontend), structured as a multi-module Maven project.
-
----
-
-## Requirements
-
-- Java 24 (Amazon Corretto 24 or equivalent)
-- Maven 3.9+
-- Node.js 20+ and npm *(only needed for Angular dev mode — the Maven build downloads Node automatically)*
+Full-stack anagram analysis app — Spring Boot 3.4 (Java 24) backend, Angular 19 frontend, packaged as a single runnable JAR.
 
 ---
 
-## Project Structure
+## Run locally — two options
 
-```
-BSG-anagrams-code assignment/
-├── pom.xml                          ← parent POM
-├── backend/                         ← Spring Boot REST API
-│   ├── pom.xml
-│   └── src/
-│       ├── main/java/com/bsg/anagrams/
-│       │   ├── config/              OpenApiConfig, WebConfig (CORS)
-│       │   ├── controller/          WordController, AnagramController
-│       │   ├── domain/              Word (JPA entity)
-│       │   ├── dto/                 Request/Response records, PagedResponse
-│       │   ├── exception/           GlobalExceptionHandler
-│       │   ├── repository/          WordRepository
-│       │   └── service/             WordService, AnagramService, DataLoaderService
-│       ├── main/resources/
-│       │   ├── application.properties
-│       │   └── Dictionary.txt       ← seeded into H2 on first startup
-│       └── test/java/com/bsg/anagrams/
-│           ├── controller/          WordControllerTest, AnagramControllerTest
-│           └── service/             AnagramServiceTest
-└── frontend/                        ← Angular 19 SPA (Maven module)
-    ├── pom.xml                      ← frontend-maven-plugin runs ng build; assets unpacked into backend JAR
-    └── src/main/anagrams-ui/
-        └── src/app/
-            ├── api.service.ts       ← all HTTP calls
-            ├── shared/              reusable AlertComponent
-            └── tabs/                words-list, add-word, anagram-lookup, anagram-counts
-```
+### Option A: Maven (no Docker needed)
 
----
-
-## Build
+**Requirements:** Java 24, Maven 3.9+
 
 ```bash
-# Backend only (skips Angular build — useful during backend development)
-mvn clean package -pl backend
-
-# Full build — Angular + backend, single runnable JAR
 mvn clean package
-```
-
-The full build:
-1. Downloads Node locally via `frontend-maven-plugin` (first run only)
-2. Runs `ng build --configuration production`
-3. Unpacks the Angular `dist/` assets into the backend classpath under `META-INF/resources/`
-4. Produces a single fat JAR: `backend/target/bsg-anagrams-backend-1.0.0-SNAPSHOT.jar`
-
----
-
-## Run
-
-```bash
 java -jar backend/target/bsg-anagrams-backend-1.0.0-SNAPSHOT.jar
 ```
 
-On startup the app seeds the database from `Dictionary.txt` (one-time only — skipped on subsequent restarts).
+First build downloads Node automatically for the Angular build. Subsequent builds are fast.
+
+### Option B: Docker
+
+**Requirements:** Docker
+
+```bash
+docker compose up
+```
+
+That's it. Image is built and started automatically.
 
 ---
 
-## What you get at localhost:8080
+## What's running at localhost:8080
 
-| URL | Description |
+| URL | What |
 |---|---|
-| `http://localhost:8080/` | Angular UI |
-| `http://localhost:8080/swagger-ui.html` | Swagger / OpenAPI docs |
-| `http://localhost:8080/api-docs` | OpenAPI JSON |
-| `http://localhost:8080/h2-console` | H2 database console |
+| `/` | Angular UI |
+| `/swagger-ui.html` | Interactive API docs |
+| `/h2-console` | Database console (JDBC: `jdbc:h2:mem:anagramsdb`) |
 
-H2 console JDBC URL: `jdbc:h2:mem:anagramsdb`
+On first startup the app seeds ~178k words from `Dictionary.txt`. Subsequent restarts skip seeding.
 
 ---
 
-## Frontend — dev mode
+## Frontend dev mode
 
-For live-reload Angular development, run the backend first then:
+Run the backend first, then in a separate terminal:
 
 ```bash
 cd frontend/src/main/anagrams-ui
-npm install        # first time only
-npm start          # http://localhost:4200 — proxies /api/* to localhost:8080
+npm install   # first time only
+npm start     # http://localhost:4200 — proxies /api/* to :8080
 ```
 
 ---
 
-## API Endpoints
+## API
 
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/api/words` | All words — params: `page`, `size`, `sortBy`, `direction` |
-| `POST` | `/api/words` | Add a word — body: `{ "word": "LISTEN" }` |
+| `POST` | `/api/words` | Add a word — body: `{ "word": "SPARE" }` |
 | `DELETE` | `/api/words/{word}` | Delete a word |
-| `GET` | `/api/words/{word}/anagrams` | Anagrams of a given word |
-| `GET` | `/api/anagrams/counts` | Anagram group counts per word length + computation time (ms) |
-
-Full interactive docs at `http://localhost:8080/swagger-ui.html`.
+| `GET` | `/api/words/{word}/anagrams` | Anagrams of a word |
+| `GET` | `/api/anagrams/counts` | Anagram group counts per word length + timing (ms) |
 
 ---
 
@@ -118,25 +71,59 @@ Full interactive docs at `http://localhost:8080/swagger-ui.html`.
 mvn test -pl backend
 ```
 
-15 tests — unit (anagram algorithm, domain logic) and MockMvc slice tests (all controllers).
+---
+
+## Deploy to AWS Elastic Beanstalk (free tier)
+
+> **Outstanding:** requires an AWS account + Docker Hub account (both free).
+
+### One-time setup
+
+1. Create a free [AWS account](https://aws.amazon.com/free) and [Docker Hub account](https://hub.docker.com)
+2. Install [AWS CLI](https://aws.amazon.com/cli/) and run `aws configure`
+3. Install [EB CLI](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/eb-cli3-install.html)
+4. Replace `<YOUR_DOCKERHUB_USERNAME>` in `Dockerrun.aws.json`
+
+### First deploy
+
+```bash
+docker build -t <YOUR_DOCKERHUB_USERNAME>/bsg-anagrams:latest .
+docker push <YOUR_DOCKERHUB_USERNAME>/bsg-anagrams:latest
+
+eb init bsg-anagrams --platform "Docker" --region us-east-1
+eb create bsg-anagrams-env --instance-type t2.micro --single
+eb open
+```
+
+`--single` skips the load balancer — keeps it on the free tier.
+
+### Subsequent deploys
+
+```bash
+docker build -t <YOUR_DOCKERHUB_USERNAME>/bsg-anagrams:latest .
+docker push <YOUR_DOCKERHUB_USERNAME>/bsg-anagrams:latest
+eb deploy
+```
 
 ---
 
-## Assumptions
+## Project structure
 
-- **Anagram count** = number of *groups* where 2+ words share the same sorted-character signature (e.g. LISTEN / SILENT / ENLIST = 1 group of 3), not the total number of anagram words.
-- Words are stored and compared **case-insensitively** — normalised to uppercase internally.
-- **H2 in-memory** database is used for portability. To swap to PostgreSQL, update the `datasource` block in `application.properties` and add the PostgreSQL driver dependency.
-- Dictionary is seeded **once on first startup**. Subsequent restarts skip seeding if the table is already populated.
-- Anagram counts are **cached** (Caffeine) and automatically evicted on any word add or delete, so results always reflect live data.
+```
+├── backend/        Spring Boot API, JPA, H2, Caffeine cache, Swagger
+├── frontend/       Angular 19 SPA (built by Maven, served from the JAR)
+├── Dockerfile      Multi-stage build — Maven build stage + slim JRE runtime
+├── docker-compose.yml
+└── Dockerrun.aws.json   Elastic Beanstalk single-container config
+```
 
 ---
 
-## Algorithm
+## How the algorithm works
 
-The anagram key (`sorted_chars`) is computed once at insert time — e.g. `LISTEN` → `EILNST`. No character sorting happens at query time.
+Each word is stored with a `sorted_chars` column — its letters sorted alphabetically (e.g. `SPARE` → `AEPRS`). All anagrams of the same word share the same value.
 
-The count query is a single aggregation pushed entirely to the database:
+Counting anagram groups is a single DB aggregation, never touching Java-side iteration:
 
 ```sql
 SELECT word_length, COUNT(DISTINCT sorted_chars)
@@ -145,4 +132,12 @@ GROUP BY word_length
 ORDER BY word_length
 ```
 
-A composite index on `(word_length, sorted_chars)` makes this a covering index scan — the engine never touches the table rows. The Java layer receives ~30 rows (one per distinct word length) regardless of dictionary size. With caching, repeated calls cost nothing.
+A composite index on `(word_length, sorted_chars)` makes it a covering index scan. With Caffeine caching on top, repeated calls cost nothing — the DB is only hit after a word is added or deleted.
+
+---
+
+## Assumptions
+
+- Anagram count = number of **groups** (e.g. SPARE / REAPS / PARES = 1 group), not total words.
+- All words normalised to uppercase internally.
+- H2 in-memory DB — swap to PostgreSQL by updating `application.properties` datasource and adding the PG driver.

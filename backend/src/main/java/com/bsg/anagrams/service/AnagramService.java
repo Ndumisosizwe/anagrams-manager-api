@@ -21,7 +21,6 @@ public class AnagramService {
      * Groups words by sorted-character signature per word length.
      * A group with >1 word represents an anagram set; the count reported
      * is the number of such groups, not the total number of anagram words.
-     * Complexity: O(n * k log k) where n = word count, k = max word length.
      */
     @Cacheable("anagramCounts")
     public AnagramCountResponse computeAnagramCounts() {

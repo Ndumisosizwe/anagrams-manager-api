@@ -38,12 +38,12 @@ public class Word {
     public Word(String word) {
         this.word = word.toUpperCase();
         this.wordLength = word.length();
-        this.sortedChars = sortChars(word);
+        this.sortedChars = sortChars(this.word);
         this.createdAt = LocalDateTime.now();
     }
 
     private static String sortChars(String word) {
-        char[] chars = word.toUpperCase().toCharArray();
+        char[] chars = word.toCharArray();
         java.util.Arrays.sort(chars);
         return new String(chars);
     }

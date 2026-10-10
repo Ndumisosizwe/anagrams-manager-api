@@ -1,0 +1,21 @@
+# Build outputs — rebuilt inside Docker
+**/target/
+
+# Angular build cache and installed packages — frontend-maven-plugin re-downloads Node
+# and re-runs npm install during the Docker build
+**/node_modules/
+**/dist/
+**/.angular/
+
+# Git and IDE
+.git/
+.idea/
+.vscode/
+
+# Elastic Beanstalk config (not needed inside image)
+.elasticbeanstalk/
+Dockerrun.aws.json
+
+# Keep source and config files, exclude markdown
+*.md
+README.txt
